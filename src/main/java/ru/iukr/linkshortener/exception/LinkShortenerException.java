@@ -9,7 +9,4 @@ public class LinkShortenerException extends RuntimeException{
     public LinkShortenerException(String message, Exception exception) {
         super(message, exception);
     }
-
-    public LinkShortenerException() {
-    }
 }
