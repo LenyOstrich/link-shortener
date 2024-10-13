@@ -8,12 +8,12 @@ import java.util.HashMap;
 
 public class LinkInfoServiceImpl implements LinkInfoService {
 
-    public HashMap<CreateLinkInfoRequest, String> linkMap = new HashMap<>();
+    public HashMap<String, CreateLinkInfoRequest> linkMap = new HashMap<>();
 
     @Override
     public String generateLink(CreateLinkInfoRequest linkInfoRequest) {
-        String str = RandomStringUtils.randomAlphanumeric(5);
-        linkMap.put(linkInfoRequest, str);
-        return str;
+        String shortLink = RandomStringUtils.randomAlphanumeric(5);
+        linkMap.put(shortLink, linkInfoRequest);
+        return shortLink;
     }
 }
