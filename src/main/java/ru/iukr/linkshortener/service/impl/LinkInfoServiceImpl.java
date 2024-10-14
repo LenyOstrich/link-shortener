@@ -5,10 +5,11 @@ import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.service.LinkInfoService;
 
 import java.util.HashMap;
+import java.util.Map;
 
 public class LinkInfoServiceImpl implements LinkInfoService {
 
-    public HashMap<String, CreateLinkInfoRequest> linkMap = new HashMap<>();
+    public Map<String, CreateLinkInfoRequest> linkMap = new HashMap<>();
 
     @Override
     public String generateLink(CreateLinkInfoRequest linkInfoRequest) {
