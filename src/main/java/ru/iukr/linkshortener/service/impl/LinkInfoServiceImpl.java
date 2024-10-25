@@ -33,13 +33,18 @@ public class LinkInfoServiceImpl implements LinkInfoService {
                 .openingCount(0L)
                 .build();
         LinkInfo savedLinkInfo = repository.save(linkInfo);
-        return toResponse(linkInfo);
+        return toResponse(savedLinkInfo);
     }
 
     @Override
     public LinkInfoResponse getByShortLink(String shortLink) {
         return repository.findByShortLink(shortLink).map(this::toResponse)
-                .orElseThrow(()-> new NotFoundException("Не удалось найти сущность по короткой ссылке: " + shortLink));
+                .orElseThrow(() -> new NotFoundException("Не удалось найти сущность по короткой ссылке: " + shortLink));
+    }
+
+    @Override
+    public List<LinkInfoResponse> findByFilter() {
+        return repository.findAll().stream().map(this::toResponse).toList();
     }
 
     private LinkInfoResponse toResponse(LinkInfo linkInfo) {
@@ -52,10 +57,5 @@ public class LinkInfoServiceImpl implements LinkInfoService {
                 .active(linkInfo.getActive())
                 .openingCount(linkInfo.getOpeningCount())
                 .build();
-    }
-
-    @Override
-    public List<LinkInfoResponse> findByFilter() {
-        return repository.findAll().stream().map(this::toResponse).toList();
     }
 }
