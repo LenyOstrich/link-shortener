@@ -1,4 +1,4 @@
-package ru.iukr.linkshortener.model;
+package ru.iukr.linkshortener.dto;
 
 import lombok.*;
 
@@ -10,7 +10,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LinkInfoUpdateModel {
+public class UpdateRequest {
     private UUID id;
     private String link;
     private LocalDateTime endTime;

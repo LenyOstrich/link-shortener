@@ -1,7 +1,6 @@
 package ru.iukr.linkshortener.repository;
 
 import ru.iukr.linkshortener.model.LinkInfo;
-import ru.iukr.linkshortener.model.LinkInfoUpdateModel;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +15,4 @@ public interface LinkInfoRepository {
     List<LinkInfo> findAll();
 
     void deleteLink(UUID uuid);
-
-    LinkInfo update(LinkInfoUpdateModel linkInfo);
 }

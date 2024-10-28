@@ -2,7 +2,7 @@ package ru.iukr.linkshortener.service;
 
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.model.LinkInfoResponse;
-import ru.iukr.linkshortener.model.LinkInfoUpdateModel;
+import ru.iukr.linkshortener.dto.UpdateRequest;
 
 import java.util.List;
 import java.util.UUID;
@@ -17,5 +17,5 @@ public interface LinkInfoService {
 
     void deleteByLinkId(UUID id);
 
-    LinkInfoResponse updateLinkInfo(LinkInfoUpdateModel linkInfo);
+    LinkInfoResponse updateLinkInfo(UpdateRequest linkInfo);
 }

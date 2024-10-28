@@ -6,7 +6,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.model.LinkInfo;
 import ru.iukr.linkshortener.model.LinkInfoResponse;
-import ru.iukr.linkshortener.model.LinkInfoUpdateModel;
+import ru.iukr.linkshortener.dto.UpdateRequest;
 import ru.iukr.linkshortener.property.LinkInfoProperty;
 import ru.iukr.linkshortener.repository.LinkInfoRepository;
 import ru.iukr.linkshortener.repository.impl.LinkInfoRepositoryImpl;
@@ -92,7 +92,7 @@ class LinkInfoServiceImplTest {
                 .build();
         linkInfoService.createLinkInfo(request);
         UUID id = linkInfoService.findByFilter().get(0).getId();
-        LinkInfoUpdateModel linkInfoUpdate = LinkInfoUpdateModel.builder()
+        UpdateRequest linkInfoUpdate = UpdateRequest.builder()
                 .id(id)
                 .description(description)
                 .build();

@@ -3,14 +3,12 @@ package ru.iukr.linkshortener.repository.impl;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Repository;
 import ru.iukr.linkshortener.model.LinkInfo;
-import ru.iukr.linkshortener.model.LinkInfoUpdateModel;
 import ru.iukr.linkshortener.repository.LinkInfoRepository;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -25,6 +23,8 @@ public class LinkInfoRepositoryImpl implements LinkInfoRepository {
 
     @Override
     public LinkInfo save(LinkInfo linkInfo) {
+        LinkInfo updatedLinkInfo = updateIfExists(linkInfo);
+        if (updatedLinkInfo != null) return updatedLinkInfo;
         linkInfo.setId(UUID.randomUUID());
         storage.put(linkInfo.getShortLink(), linkInfo);
         return linkInfo;
@@ -37,23 +37,16 @@ public class LinkInfoRepositoryImpl implements LinkInfoRepository {
 
     @Override
     public void deleteLink(UUID uuid) {
-        List<Map.Entry<String, LinkInfo>> entryToRemove = new ArrayList<>();
         storage.entrySet().stream().filter(entry -> uuid == entry.getValue().getId()).findFirst().ifPresentOrElse(
-                entryToRemove::add,
+                entry -> storage.remove(entry.getKey()),
                 () -> log.info("Не удалось найти сущность по id: {}", uuid)
         );
-        entryToRemove.forEach(entry -> storage.remove(entry.getKey()));
     }
 
-    @Override
-    public LinkInfo update(LinkInfoUpdateModel linkInfo) {
-        List<Map.Entry<String, LinkInfo>> entryToUpdate = new ArrayList<>();
-        storage.entrySet().stream().filter(entry -> linkInfo.getId() == entry.getValue().getId()).findFirst().ifPresentOrElse(
-                entryToUpdate::add,
-                () -> log.info("Не удалось найти сущность по id: {}", linkInfo.getId())
-        );
-        entryToUpdate.forEach(entry -> {
-            LinkInfo value = entry.getValue();
+    private LinkInfo updateIfExists(LinkInfo linkInfo) {
+        if (linkInfo.getId() != null
+                && storage.values().stream().anyMatch(item -> item.getId() == linkInfo.getId())) {
+            LinkInfo value = storage.values().stream().filter(item -> item.getId() == linkInfo.getId()).findFirst().get();
             if (linkInfo.getLink() != null) {
                 value.setLink(linkInfo.getLink());
             }
@@ -66,7 +59,8 @@ public class LinkInfoRepositoryImpl implements LinkInfoRepository {
             if (linkInfo.getActive() != null) {
                 value.setActive(linkInfo.getActive());
             }
-        });
-        return entryToUpdate.getFirst().getValue();
+            return value;
+        }
+        return null;
     }
 }

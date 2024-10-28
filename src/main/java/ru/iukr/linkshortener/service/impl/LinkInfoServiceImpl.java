@@ -6,7 +6,7 @@ import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.exception.NotFoundException;
 import ru.iukr.linkshortener.model.LinkInfo;
 import ru.iukr.linkshortener.model.LinkInfoResponse;
-import ru.iukr.linkshortener.model.LinkInfoUpdateModel;
+import ru.iukr.linkshortener.dto.UpdateRequest;
 import ru.iukr.linkshortener.property.LinkInfoProperty;
 import ru.iukr.linkshortener.repository.LinkInfoRepository;
 import ru.iukr.linkshortener.service.LinkInfoService;
@@ -51,8 +51,8 @@ public class LinkInfoServiceImpl implements LinkInfoService {
     }
 
     @Override
-    public LinkInfoResponse updateLinkInfo(LinkInfoUpdateModel linkInfo) {
-        return toResponse(repository.update(linkInfo));
+    public LinkInfoResponse updateLinkInfo(UpdateRequest linkInfo) {
+        return toResponse(repository.save(toLinkInfo(linkInfo)));
     }
 
     private LinkInfoResponse toResponse(LinkInfo linkInfo) {
@@ -64,6 +64,16 @@ public class LinkInfoServiceImpl implements LinkInfoService {
                 .description(linkInfo.getDescription())
                 .active(linkInfo.getActive())
                 .openingCount(linkInfo.getOpeningCount())
+                .build();
+    }
+
+    private LinkInfo toLinkInfo(UpdateRequest updateRequest) {
+        return LinkInfo.builder()
+                .id(updateRequest.getId())
+                .link(updateRequest.getLink())
+                .endTime(updateRequest.getEndTime())
+                .description(updateRequest.getDescription())
+                .active(updateRequest.getActive())
                 .build();
     }
 }
