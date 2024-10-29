@@ -15,4 +15,6 @@ public interface LinkInfoRepository {
     List<LinkInfo> findAll();
 
     void deleteLink(UUID uuid);
+
+    Optional<LinkInfo> findById(UUID id);
 }

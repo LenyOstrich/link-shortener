@@ -5,7 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.util.StopWatch;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.model.LinkInfoResponse;
-import ru.iukr.linkshortener.dto.UpdateRequest;
+import ru.iukr.linkshortener.dto.LinkInfoUpdateRequest;
 import ru.iukr.linkshortener.service.LinkInfoService;
 
 import java.util.List;
@@ -66,7 +66,7 @@ public class LogExecutionTimeLinkInfoServiceProxy implements LinkInfoService {
     }
 
     @Override
-    public LinkInfoResponse updateLinkInfo(UpdateRequest linkInfo) {
+    public LinkInfoResponse updateLinkInfo(LinkInfoUpdateRequest linkInfo) {
         StopWatch stopWatch = new StopWatch();
         stopWatch.start();
         try {

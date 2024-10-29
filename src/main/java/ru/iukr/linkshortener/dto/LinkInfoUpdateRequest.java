@@ -10,7 +10,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UpdateRequest {
+public class LinkInfoUpdateRequest {
     private UUID id;
     private String link;
     private LocalDateTime endTime;

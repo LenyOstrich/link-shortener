@@ -23,9 +23,9 @@ public class LinkInfoRepositoryImpl implements LinkInfoRepository {
 
     @Override
     public LinkInfo save(LinkInfo linkInfo) {
-        LinkInfo updatedLinkInfo = updateIfExists(linkInfo);
-        if (updatedLinkInfo != null) return updatedLinkInfo;
-        linkInfo.setId(UUID.randomUUID());
+        if (linkInfo.getId() == null) {
+            linkInfo.setId(UUID.randomUUID());
+        }
         storage.put(linkInfo.getShortLink(), linkInfo);
         return linkInfo;
     }
@@ -43,24 +43,8 @@ public class LinkInfoRepositoryImpl implements LinkInfoRepository {
         );
     }
 
-    private LinkInfo updateIfExists(LinkInfo linkInfo) {
-        if (linkInfo.getId() != null
-                && storage.values().stream().anyMatch(item -> item.getId() == linkInfo.getId())) {
-            LinkInfo value = storage.values().stream().filter(item -> item.getId() == linkInfo.getId()).findFirst().get();
-            if (linkInfo.getLink() != null) {
-                value.setLink(linkInfo.getLink());
-            }
-            if (linkInfo.getEndTime() != null) {
-                value.setEndTime(linkInfo.getEndTime());
-            }
-            if (linkInfo.getDescription() != null) {
-                value.setDescription(linkInfo.getDescription());
-            }
-            if (linkInfo.getActive() != null) {
-                value.setActive(linkInfo.getActive());
-            }
-            return value;
-        }
-        return null;
+    @Override
+    public Optional<LinkInfo> findById(UUID id) {
+        return storage.values().stream().filter(linkInfo -> id.equals(linkInfo.getId())).findFirst();
     }
 }

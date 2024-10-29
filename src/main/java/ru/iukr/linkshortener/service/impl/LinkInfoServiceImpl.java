@@ -6,7 +6,7 @@ import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.exception.NotFoundException;
 import ru.iukr.linkshortener.model.LinkInfo;
 import ru.iukr.linkshortener.model.LinkInfoResponse;
-import ru.iukr.linkshortener.dto.UpdateRequest;
+import ru.iukr.linkshortener.dto.LinkInfoUpdateRequest;
 import ru.iukr.linkshortener.property.LinkInfoProperty;
 import ru.iukr.linkshortener.repository.LinkInfoRepository;
 import ru.iukr.linkshortener.service.LinkInfoService;
@@ -51,8 +51,24 @@ public class LinkInfoServiceImpl implements LinkInfoService {
     }
 
     @Override
-    public LinkInfoResponse updateLinkInfo(UpdateRequest linkInfo) {
-        return toResponse(repository.save(toLinkInfo(linkInfo)));
+    public LinkInfoResponse updateLinkInfo(LinkInfoUpdateRequest linkInfo) {
+        if (repository.findById(linkInfo.getId()).isPresent()) {
+         LinkInfo linkToUpdate = repository.findById(linkInfo.getId()).get();
+            if (linkInfo.getLink() != null) {
+                linkToUpdate.setLink(linkInfo.getLink());
+            }
+            if (linkInfo.getEndTime() != null) {
+                linkToUpdate.setEndTime(linkInfo.getEndTime());
+            }
+            if (linkInfo.getDescription() != null) {
+                linkToUpdate.setDescription(linkInfo.getDescription());
+            }
+            if (linkInfo.getActive() != null) {
+                linkToUpdate.setActive(linkInfo.getActive());
+            }
+            return toResponse(repository.save(linkToUpdate));
+        }
+        throw new NotFoundException("Не удалось найти сущность для обновления");
     }
 
     private LinkInfoResponse toResponse(LinkInfo linkInfo) {
@@ -64,16 +80,6 @@ public class LinkInfoServiceImpl implements LinkInfoService {
                 .description(linkInfo.getDescription())
                 .active(linkInfo.getActive())
                 .openingCount(linkInfo.getOpeningCount())
-                .build();
-    }
-
-    private LinkInfo toLinkInfo(UpdateRequest updateRequest) {
-        return LinkInfo.builder()
-                .id(updateRequest.getId())
-                .link(updateRequest.getLink())
-                .endTime(updateRequest.getEndTime())
-                .description(updateRequest.getDescription())
-                .active(updateRequest.getActive())
                 .build();
     }
 }
