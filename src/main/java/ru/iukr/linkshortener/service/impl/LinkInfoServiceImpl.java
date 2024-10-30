@@ -1,29 +1,27 @@
 package ru.iukr.linkshortener.service.impl;
 
-import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.exception.NotFoundException;
 import ru.iukr.linkshortener.model.LinkInfo;
 import ru.iukr.linkshortener.model.LinkInfoResponse;
+import ru.iukr.linkshortener.dto.LinkInfoUpdateRequest;
+import ru.iukr.linkshortener.property.LinkInfoProperty;
 import ru.iukr.linkshortener.repository.LinkInfoRepository;
 import ru.iukr.linkshortener.service.LinkInfoService;
 
 import java.util.List;
+import java.util.UUID;
 
-import static ru.iukr.linkshortener.constants.ShortLinkValues.LINK_LENGTH;
-
-@NoArgsConstructor
+@RequiredArgsConstructor
 public class LinkInfoServiceImpl implements LinkInfoService {
-    private LinkInfoRepository repository;
-
-    public LinkInfoServiceImpl(LinkInfoRepository repository) {
-        this.repository = repository;
-    }
+    private final LinkInfoRepository repository;
+    private final LinkInfoProperty property;
 
     @Override
     public LinkInfoResponse createLinkInfo(CreateLinkInfoRequest linkInfoRequest) {
-        String shortLink = RandomStringUtils.randomAlphanumeric(LINK_LENGTH);
+        String shortLink = RandomStringUtils.randomAlphanumeric(property.getShortLinkLength());
         LinkInfo linkInfo = LinkInfo.builder()
                 .shortLink(shortLink)
                 .link(linkInfoRequest.getLink())
@@ -45,6 +43,31 @@ public class LinkInfoServiceImpl implements LinkInfoService {
     @Override
     public List<LinkInfoResponse> findByFilter() {
         return repository.findAll().stream().map(this::toResponse).toList();
+    }
+
+    @Override
+    public void deleteByLinkId(UUID id) {
+        repository.deleteLink(id);
+    }
+
+    @Override
+    public LinkInfoResponse updateLinkInfo(LinkInfoUpdateRequest linkInfo) {
+        LinkInfo linkToUpdate = repository.findById(linkInfo.getId())
+                .orElseThrow(() -> new NotFoundException("Не удалось найти сущность для обновления"));
+        if (linkInfo.getLink() != null) {
+            linkToUpdate.setLink(linkInfo.getLink());
+        }
+        if (linkInfo.getEndTime() != null) {
+            linkToUpdate.setEndTime(linkInfo.getEndTime());
+        }
+        if (linkInfo.getDescription() != null) {
+            linkToUpdate.setDescription(linkInfo.getDescription());
+        }
+        if (linkInfo.getActive() != null) {
+            linkToUpdate.setActive(linkInfo.getActive());
+        }
+        return toResponse(repository.save(linkToUpdate));
+
     }
 
     private LinkInfoResponse toResponse(LinkInfo linkInfo) {

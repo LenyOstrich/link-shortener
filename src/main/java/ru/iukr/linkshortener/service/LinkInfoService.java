@@ -2,8 +2,10 @@ package ru.iukr.linkshortener.service;
 
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.model.LinkInfoResponse;
+import ru.iukr.linkshortener.dto.LinkInfoUpdateRequest;
 
 import java.util.List;
+import java.util.UUID;
 
 public interface LinkInfoService {
 
@@ -12,4 +14,8 @@ public interface LinkInfoService {
     LinkInfoResponse getByShortLink(String shortLink);
 
     List<LinkInfoResponse> findByFilter();
+
+    void deleteByLinkId(UUID id);
+
+    LinkInfoResponse updateLinkInfo(LinkInfoUpdateRequest linkInfo);
 }
