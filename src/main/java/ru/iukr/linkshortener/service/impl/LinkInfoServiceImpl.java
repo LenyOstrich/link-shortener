@@ -52,23 +52,22 @@ public class LinkInfoServiceImpl implements LinkInfoService {
 
     @Override
     public LinkInfoResponse updateLinkInfo(LinkInfoUpdateRequest linkInfo) {
-        if (repository.findById(linkInfo.getId()).isPresent()) {
-         LinkInfo linkToUpdate = repository.findById(linkInfo.getId()).get();
-            if (linkInfo.getLink() != null) {
-                linkToUpdate.setLink(linkInfo.getLink());
-            }
-            if (linkInfo.getEndTime() != null) {
-                linkToUpdate.setEndTime(linkInfo.getEndTime());
-            }
-            if (linkInfo.getDescription() != null) {
-                linkToUpdate.setDescription(linkInfo.getDescription());
-            }
-            if (linkInfo.getActive() != null) {
-                linkToUpdate.setActive(linkInfo.getActive());
-            }
-            return toResponse(repository.save(linkToUpdate));
+        LinkInfo linkToUpdate = repository.findById(linkInfo.getId())
+                .orElseThrow(() -> new NotFoundException("Не удалось найти сущность для обновления"));
+        if (linkInfo.getLink() != null) {
+            linkToUpdate.setLink(linkInfo.getLink());
         }
-        throw new NotFoundException("Не удалось найти сущность для обновления");
+        if (linkInfo.getEndTime() != null) {
+            linkToUpdate.setEndTime(linkInfo.getEndTime());
+        }
+        if (linkInfo.getDescription() != null) {
+            linkToUpdate.setDescription(linkInfo.getDescription());
+        }
+        if (linkInfo.getActive() != null) {
+            linkToUpdate.setActive(linkInfo.getActive());
+        }
+        return toResponse(repository.save(linkToUpdate));
+
     }
 
     private LinkInfoResponse toResponse(LinkInfo linkInfo) {

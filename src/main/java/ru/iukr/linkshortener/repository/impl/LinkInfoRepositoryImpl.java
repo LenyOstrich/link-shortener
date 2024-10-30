@@ -37,14 +37,19 @@ public class LinkInfoRepositoryImpl implements LinkInfoRepository {
 
     @Override
     public void deleteLink(UUID uuid) {
-        storage.entrySet().stream().filter(entry -> uuid == entry.getValue().getId()).findFirst().ifPresentOrElse(
-                entry -> storage.remove(entry.getKey()),
-                () -> log.info("Не удалось найти сущность по id: {}", uuid)
-        );
+        storage.entrySet().stream()
+                .filter(entry -> uuid.equals(entry.getValue().getId()))
+                .findFirst()
+                .ifPresentOrElse(
+                        entry -> storage.remove(entry.getKey()),
+                        () -> log.info("Не удалось найти сущность по id: {}", uuid)
+                );
     }
 
     @Override
     public Optional<LinkInfo> findById(UUID id) {
-        return storage.values().stream().filter(linkInfo -> id.equals(linkInfo.getId())).findFirst();
+        return storage.values().stream()
+                .filter(linkInfo -> id.equals(linkInfo.getId()))
+                .findFirst();
     }
 }
