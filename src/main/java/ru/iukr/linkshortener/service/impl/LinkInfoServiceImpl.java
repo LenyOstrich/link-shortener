@@ -2,6 +2,8 @@ package ru.iukr.linkshortener.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.stereotype.Service;
+import ru.iukr.linkshortener.annotation.LogExecutionTime;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.exception.NotFoundException;
 import ru.iukr.linkshortener.model.LinkInfo;
@@ -14,12 +16,14 @@ import ru.iukr.linkshortener.service.LinkInfoService;
 import java.util.List;
 import java.util.UUID;
 
+@Service
 @RequiredArgsConstructor
 public class LinkInfoServiceImpl implements LinkInfoService {
     private final LinkInfoRepository repository;
     private final LinkInfoProperty property;
 
     @Override
+    @LogExecutionTime
     public LinkInfoResponse createLinkInfo(CreateLinkInfoRequest linkInfoRequest) {
         String shortLink = RandomStringUtils.randomAlphanumeric(property.getShortLinkLength());
         LinkInfo linkInfo = LinkInfo.builder()
@@ -35,22 +39,26 @@ public class LinkInfoServiceImpl implements LinkInfoService {
     }
 
     @Override
+    @LogExecutionTime
     public LinkInfoResponse getByShortLink(String shortLink) {
         return repository.findByShortLink(shortLink).map(this::toResponse)
                 .orElseThrow(() -> new NotFoundException("Не удалось найти сущность по короткой ссылке: " + shortLink));
     }
 
     @Override
+    @LogExecutionTime
     public List<LinkInfoResponse> findByFilter() {
         return repository.findAll().stream().map(this::toResponse).toList();
     }
 
     @Override
+    @LogExecutionTime
     public void deleteByLinkId(UUID id) {
         repository.deleteLink(id);
     }
 
     @Override
+    @LogExecutionTime
     public LinkInfoResponse updateLinkInfo(LinkInfoUpdateRequest linkInfo) {
         LinkInfo linkToUpdate = repository.findById(linkInfo.getId())
                 .orElseThrow(() -> new NotFoundException("Не удалось найти сущность для обновления"));
