@@ -21,7 +21,7 @@ public class ShortLinkController {
     private final LinkInfoService linkInfoService;
 
     @GetMapping("/{shortLink}")
-    public ResponseEntity<String> getByShortLink(@PathVariable("shortLink") String shortLink) {
+    public ResponseEntity<String> getByShortLink(@PathVariable String shortLink) {
         log.info("Поступил запрос на открытие короткой ссылки: {}", shortLink);
         LinkInfoResponse linkInfoResponse = linkInfoService.getByShortLink(shortLink);
         return ResponseEntity

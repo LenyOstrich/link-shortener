@@ -4,8 +4,6 @@ server:
     context-path: /${spring.application.name}
 
 spring:
-  profiles:
-    active: log-exec-time, localdev
   application:
     name: link-shortener
 

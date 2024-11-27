@@ -5,6 +5,7 @@ import org.springframework.stereotype.Repository;
 import ru.iukr.linkshortener.model.LinkInfo;
 import ru.iukr.linkshortener.repository.LinkInfoRepository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -18,7 +19,8 @@ public class LinkInfoRepositoryImpl implements LinkInfoRepository {
 
     @Override
     public Optional<LinkInfo> findByShortLink(String shortLink) {
-        return Optional.ofNullable(storage.get(shortLink));
+        return Optional.ofNullable(storage.get(shortLink))
+                .filter(linkInfo -> linkInfo.getActive() && linkInfo.getEndTime().isAfter(LocalDateTime.now()));
     }
 
     @Override
