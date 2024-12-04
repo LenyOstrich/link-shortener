@@ -18,7 +18,7 @@ public class LinkInfoRepositoryImpl implements LinkInfoRepository {
     private final Map<String, LinkInfo> storage = new ConcurrentHashMap<>();
 
     @Override
-    public Optional<LinkInfo> findByShortLink(String shortLink) {
+    public Optional<LinkInfo> findByShortLinkAndActiveIsTrueAndEndTimeIsAfter(String shortLink) {
         return Optional.ofNullable(storage.get(shortLink))
                 .filter(linkInfo -> linkInfo.getActive() && linkInfo.getEndTime().isAfter(LocalDateTime.now()));
     }
