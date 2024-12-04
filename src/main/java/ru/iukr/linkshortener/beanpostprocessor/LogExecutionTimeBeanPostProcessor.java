@@ -5,6 +5,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.config.BeanPostProcessor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import ru.iukr.linkshortener.annotation.LogExecutionTime;
 
@@ -17,6 +18,7 @@ import java.util.Map;
 import java.util.List;
 
 @Component
+@Profile("log-exec-time")
 @ConditionalOnProperty(prefix = "link-shortener.logging", value = "enable-log-execution-time", havingValue = "true")
 public class LogExecutionTimeBeanPostProcessor implements BeanPostProcessor {
 
@@ -45,8 +47,8 @@ public class LogExecutionTimeBeanPostProcessor implements BeanPostProcessor {
         List<Method> annotatedMethods = beanMethodsData.annotatedMethods;
 
         return Proxy.newProxyInstance(beanClass.getClassLoader(), beanClass.getInterfaces(), (proxy, method, args) -> {
-            System.out.println("Вызвано из прокси: " + method.getName());
-            boolean isAnnotated = annotatedMethods.stream().anyMatch(pojoMethod -> equals(pojoMethod, method));
+            log.info("Вызвано из прокси: {}", method.getName());
+            boolean isAnnotated = annotatedMethods.stream().anyMatch(pojoMethod -> methodEquals(pojoMethod, method));
             if (isAnnotated) {
                 long start = System.currentTimeMillis();
                 try {
@@ -65,11 +67,7 @@ public class LogExecutionTimeBeanPostProcessor implements BeanPostProcessor {
         });
     }
 
-    private record BeanMethodsData(Class<?> clazz, List<Method> annotatedMethods) {
-
-    }
-
-    private boolean equals(Method method, Method other) {
+    private boolean methodEquals(Method method, Method other) {
         if (method.getName().equals(other.getName())) {
             return equalParamTypes(method.getParameterTypes(), other.getParameterTypes());
         }
@@ -85,5 +83,9 @@ public class LogExecutionTimeBeanPostProcessor implements BeanPostProcessor {
             return true;
         }
         return false;
+    }
+
+    private record BeanMethodsData(Class<?> clazz, List<Method> annotatedMethods) {
+
     }
 }

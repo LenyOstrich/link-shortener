@@ -28,6 +28,10 @@ dependencies {
 
 }
 
+jar.enabled = false
+
 test {
     useJUnitPlatform()
 }
+
+compileJava.options.compilerArgs.add '-parameters'

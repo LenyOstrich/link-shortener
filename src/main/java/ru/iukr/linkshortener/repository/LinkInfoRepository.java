@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public interface LinkInfoRepository {
 
-    Optional<LinkInfo> findByShortLink(String shortLink);
+    Optional<LinkInfo> findByShortLinkAndActiveIsTrueAndEndTimeIsAfter(String shortLink);
 
     LinkInfo save(LinkInfo linkInfo);
 
