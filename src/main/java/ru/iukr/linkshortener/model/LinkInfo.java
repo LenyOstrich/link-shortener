@@ -18,8 +18,8 @@ import java.util.UUID;
 public class LinkInfo {
 
     private UUID id;
-    private String shortLink;
     private String link;
+    private String shortLink;
     private LocalDateTime endTime;
     private String description;
     private Boolean active;

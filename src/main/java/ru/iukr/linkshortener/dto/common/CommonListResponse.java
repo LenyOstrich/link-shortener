@@ -1,6 +1,6 @@
 package ru.iukr.linkshortener.dto.common;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
+
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,12 +13,7 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonInclude(JsonInclude.Include.NON_NULL)
-public class CommonResponse<T> {
-
+public class CommonListResponse<T> {
     private UUID id;
-    private T body;
-
-    private String errorMessage;
-    private List<ValidationError> validationErrors;
+    private List<T> body;
 }

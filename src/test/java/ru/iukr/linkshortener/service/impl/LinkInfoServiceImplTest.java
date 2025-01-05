@@ -4,6 +4,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
+import ru.iukr.linkshortener.mapper.LinkInfoMapper;
 import ru.iukr.linkshortener.model.LinkInfo;
 import ru.iukr.linkshortener.model.LinkInfoResponse;
 import ru.iukr.linkshortener.dto.LinkInfoUpdateRequest;
@@ -28,15 +29,17 @@ class LinkInfoServiceImplTest {
     private LinkInfoRepository repository;
     @Autowired
     private LinkInfoProperty property;
+    @Autowired
+    private LinkInfoMapper mapper;
 
     private final String link = "https://habr.com/";
-
+    private final String endDate = LocalDateTime.now().plusDays(1).toString();
 
     @Test
     void createLinkInfoTest() {
         int sizeBeforeCreation = linkInfoService.findByFilter().size();
         CreateLinkInfoRequest request = CreateLinkInfoRequest.builder()
-                .endTime(LocalDateTime.now().plusDays(1))
+                .endTime(endDate)
                 .link(link)
                 .build();
         linkInfoService.createLinkInfo(request);
@@ -48,10 +51,11 @@ class LinkInfoServiceImplTest {
     void getByShortLinkTest() {
         LinkInfoRepository repository = new LinkInfoRepositoryImpl();
         CreateLinkInfoRequest request = CreateLinkInfoRequest.builder()
-                .endTime(LocalDateTime.now().plusDays(1))
+                .endTime(endDate)
                 .link(link)
+                .active(true)
                 .build();
-        LinkInfoService service = new LinkInfoServiceImpl(repository, property);
+        LinkInfoService service = new LinkInfoServiceImpl(mapper, repository, property);
         LinkInfoService serviceWithTime = new LogExecutionTimeLinkInfoServiceProxy(service);
         serviceWithTime.createLinkInfo(request);
         LinkInfo createdLinkInfo = repository.findAll().stream().filter(linkInfo -> linkInfo.getLink().equals(link)).findFirst().get();
@@ -62,7 +66,7 @@ class LinkInfoServiceImplTest {
     void findByFilterTest() {
         LinkInfoService service = new LogExecutionTimeLinkInfoServiceProxy(linkInfoService);
         CreateLinkInfoRequest request = CreateLinkInfoRequest.builder()
-                .endTime(LocalDateTime.now().plusDays(1))
+                .endTime(endDate)
                 .link(link)
                 .build();
         service.createLinkInfo(request);
@@ -72,7 +76,7 @@ class LinkInfoServiceImplTest {
     @Test
     void deleteByLinkIdTest() {
         CreateLinkInfoRequest request = CreateLinkInfoRequest.builder()
-                .endTime(LocalDateTime.now().plusDays(1))
+                .endTime(endDate)
                 .link(link)
                 .build();
         linkInfoService.createLinkInfo(request);
@@ -87,13 +91,13 @@ class LinkInfoServiceImplTest {
     void updateLinkInfoTest() {
         String description = "New Description";
         CreateLinkInfoRequest request = CreateLinkInfoRequest.builder()
-                .endTime(LocalDateTime.now().plusDays(1))
+                .endTime(endDate)
                 .link(link)
                 .build();
         linkInfoService.createLinkInfo(request);
         UUID id = linkInfoService.findByFilter().get(0).getId();
         LinkInfoUpdateRequest linkInfoUpdate = LinkInfoUpdateRequest.builder()
-                .id(id)
+                .id(String.valueOf(id))
                 .description(description)
                 .build();
         linkInfoService.updateLinkInfo(linkInfoUpdate);
