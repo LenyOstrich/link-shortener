@@ -4,7 +4,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -20,7 +19,6 @@ import ru.iukr.linkshortener.dto.common.CommonListResponse;
 import ru.iukr.linkshortener.dto.common.CommonRequest;
 import ru.iukr.linkshortener.dto.common.CommonResponse;
 import ru.iukr.linkshortener.model.LinkInfoResponse;
-import ru.iukr.linkshortener.service.LinkInfoFilterService;
 import ru.iukr.linkshortener.service.LinkInfoService;
 
 import java.util.List;
@@ -33,15 +31,12 @@ import java.util.UUID;
 public class LinkInfoController {
 
     private final LinkInfoService linkInfoService;
-    private final LinkInfoFilterService linkInfoFilterService;
 
-    @GetMapping
+    @PostMapping("/filter")
     public CommonListResponse<LinkInfoResponse> filterLinkInfo(@RequestBody CommonRequest<FilterLinkInfoRequest> request) {
         log.info("Поступил запрос на поиск короткой ссылки: {}", request);
         FilterLinkInfoRequest body = request.getBody();
-        List<LinkInfoResponse> foundLinkInfoResponse = linkInfoService.findByFilter().stream()
-                .filter(linkInfoResponse -> linkInfoFilterService.applyFilters(linkInfoResponse, body))
-                .toList();
+        List<LinkInfoResponse> foundLinkInfoResponse = linkInfoService.getFilteredLinkInfos(body);
         log.info("Короткие ссылки найдены: {}", foundLinkInfoResponse);
         return CommonListResponse.<LinkInfoResponse>builder()
                 .id(UUID.randomUUID())

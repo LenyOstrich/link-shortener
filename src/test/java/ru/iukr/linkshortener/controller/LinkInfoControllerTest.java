@@ -105,7 +105,7 @@ class LinkInfoControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.errorMessage").value("Ошибка валидации"))
-                .andExpect(jsonPath("$.validationErrors[?(@.field == '" + "body." + field + "')].message").exists())
+                .andExpect(jsonPath("$.validationErrors[?(@.message == '" + validationErrorMessage + "')].field").value(field))
                 .andExpect(jsonPath("$.validationErrors[?(@.message == '" + validationErrorMessage + "')]").exists());
     }
 
@@ -123,39 +123,39 @@ class LinkInfoControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.id").isNotEmpty())
                 .andExpect(jsonPath("$.errorMessage").value("Ошибка валидации"))
-                .andExpect(jsonPath("$.validationErrors[?(@.field == '" + "body." + field + "')].message").exists())
+                .andExpect(jsonPath("$.validationErrors[?(@.message == '" + validationErrorMessage + "')].field").value(field))
                 .andExpect(jsonPath("$.validationErrors[?(@.message == '" + validationErrorMessage + "')]").exists());
     }
 
     public static Stream<Arguments> postCreateShortLinkInvalidRequestSource() {
         return Stream.of(
                 Arguments.of(new CreateLinkInfoRequest(null, tomorrow, DESCRIPTION, true),
-                        "Ссылка не может быть пустой", "link"),
+                        "Ссылка не может быть пустой", "body.link"),
                 Arguments.of(new CreateLinkInfoRequest("", tomorrow, DESCRIPTION, true),
-                        "Ссылка не может быть пустой", "link"),
+                        "Ссылка не может быть пустой", "body.link"),
                 Arguments.of(new CreateLinkInfoRequest("wrong_url_pattern", tomorrow, DESCRIPTION, true),
-                        "url не соответствует паттерну", "link"),
+                        "url не соответствует паттерну", "body.link"),
                 Arguments.of(new CreateLinkInfoRequest(LINK, LocalDateTime.now().minusDays(1).toString(), DESCRIPTION, true),
-                        "Дата окончания действия ссылки не верна", "endTime"),
+                        "Дата окончания действия ссылки не верна", "body.endTime"),
                 Arguments.of(new CreateLinkInfoRequest(LINK, "wrong_date_format", DESCRIPTION, true),
-                        "Дата окончания действия ссылки не верна", "endTime"),
+                        "Дата окончания действия ссылки не верна", "body.endTime"),
                 Arguments.of(new CreateLinkInfoRequest(LINK, tomorrow, DESCRIPTION, null),
-                        "Признак активности не может быть null", "active")
+                        "Признак активности не может быть null", "body.active")
         );
     }
 
     public static Stream<Arguments> patchUpdateShortLinkInvalidRequestSource() {
         return Stream.of(
                 Arguments.of(new LinkInfoUpdateRequest(null, LINK, tomorrow, DESCRIPTION, true),
-                        "Некорректный uuid", "id"),
+                        "Некорректный uuid", "body.id"),
                 Arguments.of(new LinkInfoUpdateRequest("invalid_id", LINK, tomorrow, DESCRIPTION, true),
-                        "Некорректный uuid", "id"),
+                        "Некорректный uuid", "body.id"),
                 Arguments.of(new LinkInfoUpdateRequest(ID,"wrong_url_pattern", tomorrow, DESCRIPTION, true),
-                        "url не соответствует паттерну", "link"),
+                        "url не соответствует паттерну", "body.link"),
                 Arguments.of(new LinkInfoUpdateRequest(ID, LINK, LocalDateTime.now().minusDays(1).toString(), DESCRIPTION, true),
-                        "Дата окончания действия ссылки не верна", "endTime"),
+                        "Дата окончания действия ссылки не верна", "body.endTime"),
                 Arguments.of(new LinkInfoUpdateRequest(ID, LINK, "wrong_date_format", DESCRIPTION, true),
-                        "Дата окончания действия ссылки не верна", "endTime")
+                        "Дата окончания действия ссылки не верна", "body.endTime")
         );
     }
 }

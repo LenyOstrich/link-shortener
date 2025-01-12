@@ -42,6 +42,7 @@ public class LinkShortenerExceptionHandler {
                 .build();
     }
 
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
     @ExceptionHandler(Exception.class)
     public CommonResponse<?> handleException(Exception e) {
         log.error("Непредвиденное исключение: {}", e.getMessage(), e);

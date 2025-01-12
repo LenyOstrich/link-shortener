@@ -21,9 +21,11 @@ public class LoggingRequestBodyAdvice extends RequestBodyAdviceAdapter {
     private HttpServletRequest request;
 
     @Override
-    public Object afterBodyRead(Object body, HttpInputMessage inputMessage, MethodParameter parameter, Type targetType, Class<? extends HttpMessageConverter<?>> converterType) {
-
-
+    public Object afterBodyRead(Object body,
+                                HttpInputMessage inputMessage,
+                                MethodParameter parameter,
+                                Type targetType,
+                                Class<? extends HttpMessageConverter<?>> converterType) {
         String method = request.getMethod();
         String requestURI = request.getRequestURI() + formatQueryString(request);
 

@@ -20,9 +20,9 @@ import java.util.stream.Collectors;
 @Slf4j
 @Component
 public class LoggingFilter extends HttpFilter {
+
     @Override
     protected void doFilter(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
-
         String method = request.getMethod();
         String requestURI = request.getRequestURI() + formatQueryString(request);
         String headers = inlineHeaders(request);
@@ -38,7 +38,6 @@ public class LoggingFilter extends HttpFilter {
         } finally {
             responseWrapper.copyBodyToResponse();
         }
-
     }
 
     private static String inlineHeaders(HttpServletRequest request) {

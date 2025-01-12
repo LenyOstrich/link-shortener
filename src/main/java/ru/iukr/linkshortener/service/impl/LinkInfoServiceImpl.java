@@ -2,9 +2,11 @@ package ru.iukr.linkshortener.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.iukr.linkshortener.annotation.LogExecutionTime;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
+import ru.iukr.linkshortener.dto.FilterLinkInfoRequest;
 import ru.iukr.linkshortener.exception.NotFoundException;
 import ru.iukr.linkshortener.mapper.LinkInfoMapper;
 import ru.iukr.linkshortener.model.LinkInfo;
@@ -24,6 +26,15 @@ public class LinkInfoServiceImpl implements LinkInfoService {
     private final LinkInfoMapper linkInfoMapper;
     private final LinkInfoRepository repository;
     private final LinkInfoProperty property;
+    private final LinkInfoFilterServiceImpl linkInfoFilterService;
+
+    @Override
+    @LogExecutionTime
+    public List<LinkInfoResponse> getFilteredLinkInfos(FilterLinkInfoRequest body) {
+        return findAll().stream()
+                .filter(linkInfoResponse -> linkInfoFilterService.applyFilters(linkInfoResponse, body))
+                .toList();
+    }
 
     @Override
     @LogExecutionTime
@@ -43,7 +54,7 @@ public class LinkInfoServiceImpl implements LinkInfoService {
 
     @Override
     @LogExecutionTime
-    public List<LinkInfoResponse> findByFilter() {
+    public List<LinkInfoResponse> findAll() {
         return repository.findAll().stream().map(linkInfoMapper::toResponse).toList();
     }
 

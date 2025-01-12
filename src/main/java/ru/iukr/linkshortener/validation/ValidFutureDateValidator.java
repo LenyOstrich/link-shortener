@@ -8,7 +8,7 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeParseException;
 
 @Component
-public class ValidEndDateValidator implements ConstraintValidator<ValidEndDate, String> {
+public class ValidFutureDateValidator implements ConstraintValidator<ValidEndDate, String> {
 
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {

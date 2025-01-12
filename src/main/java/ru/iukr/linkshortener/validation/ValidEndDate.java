@@ -10,7 +10,7 @@ import java.lang.annotation.Target;
 
 @Target(ElementType.FIELD)
 @Retention(RetentionPolicy.RUNTIME)
-@Constraint(validatedBy = ValidEndDateValidator.class)
+@Constraint(validatedBy = ValidFutureDateValidator.class)
 public @interface ValidEndDate {
     String message() default "Некорректная дата";
 
