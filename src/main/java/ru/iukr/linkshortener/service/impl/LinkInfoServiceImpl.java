@@ -2,7 +2,6 @@ package ru.iukr.linkshortener.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.iukr.linkshortener.annotation.LogExecutionTime;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
@@ -71,9 +70,6 @@ public class LinkInfoServiceImpl implements LinkInfoService {
                 .orElseThrow(() -> new NotFoundException("Не удалось найти сущность для обновления"));
         if (linkInfo.getLink() != null) {
             linkToUpdate.setLink(linkInfo.getLink());
-        }
-        if (linkInfo.getEndTime() != null) {
-            linkToUpdate.setEndTime(LocalDateTime.parse(linkInfo.getEndTime()));
         }
         if (linkInfo.getDescription() != null) {
             linkToUpdate.setDescription(linkInfo.getDescription());
