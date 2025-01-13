@@ -27,7 +27,7 @@ class ShortLinkControllerTest {
         CreateLinkInfoRequest body = CreateLinkInfoRequest.builder()
                 .link("test")
                 .active(true)
-                .endTime(LocalDateTime.now().plusDays(1))
+                .endTime(LocalDateTime.now().plusDays(1).toString())
                 .build();
         CommonRequest<CreateLinkInfoRequest> commonRequest = new CommonRequest<>(body);
         CommonResponse<LinkInfoResponse> response =  linkInfoController.postCreateLinkInfo(commonRequest);
