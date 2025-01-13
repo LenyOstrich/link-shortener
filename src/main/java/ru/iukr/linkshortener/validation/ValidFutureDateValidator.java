@@ -12,10 +12,11 @@ public class ValidFutureDateValidator implements ConstraintValidator<ValidEndDat
 
     @Override
     public boolean isValid(String s, ConstraintValidatorContext constraintValidatorContext) {
+        if (s == null) {
+            return true;
+        }
         try {
             return LocalDateTime.parse(s).isAfter(LocalDateTime.now());
-        } catch (NullPointerException e) {
-            return true;
         } catch (DateTimeParseException e) {
             return false;
         }

@@ -71,6 +71,7 @@ public class LinkInfoServiceImpl implements LinkInfoService {
         if (linkInfo.getLink() != null) {
             linkToUpdate.setLink(linkInfo.getLink());
         }
+        linkToUpdate.setEndTime(LocalDateTime.parse(linkInfo.getEndTime()));
         if (linkInfo.getDescription() != null) {
             linkToUpdate.setDescription(linkInfo.getDescription());
         }
