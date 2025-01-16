@@ -1,5 +1,9 @@
 package ru.iukr.linkshortener.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.Builder;
@@ -12,11 +16,14 @@ import java.util.UUID;
 
 @Getter
 @Setter
+@Entity
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class LinkInfo {
+public class LinkInfo extends AuditableEntity{
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
     private String link;
     private String shortLink;

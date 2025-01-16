@@ -20,5 +20,5 @@ public interface LinkInfoService {
 
     LinkInfoResponse updateLinkInfo(LinkInfoUpdateRequest linkInfo);
 
-    List<LinkInfoResponse> getFilteredLinkInfos(FilterLinkInfoRequest body);
+    List<LinkInfoResponse> findByFilter(FilterLinkInfoRequest body);
 }

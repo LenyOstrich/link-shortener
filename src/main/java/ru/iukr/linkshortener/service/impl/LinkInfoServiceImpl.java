@@ -7,6 +7,7 @@ import ru.iukr.linkshortener.annotation.LogExecutionTime;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.dto.FilterLinkInfoRequest;
 import ru.iukr.linkshortener.exception.NotFoundException;
+import ru.iukr.linkshortener.exception.NotFoundShortLinkException;
 import ru.iukr.linkshortener.mapper.LinkInfoMapper;
 import ru.iukr.linkshortener.model.LinkInfo;
 import ru.iukr.linkshortener.model.LinkInfoResponse;
@@ -25,13 +26,18 @@ public class LinkInfoServiceImpl implements LinkInfoService {
     private final LinkInfoMapper linkInfoMapper;
     private final LinkInfoRepository repository;
     private final LinkInfoProperty property;
-    private final LinkInfoFilterServiceImpl linkInfoFilterService;
 
     @Override
     @LogExecutionTime
-    public List<LinkInfoResponse> getFilteredLinkInfos(FilterLinkInfoRequest body) {
-        return findAll().stream()
-                .filter(linkInfoResponse -> linkInfoFilterService.applyFilters(linkInfoResponse, body))
+    public List<LinkInfoResponse> findByFilter(FilterLinkInfoRequest body) {
+        return repository.findByFilter(
+                        body.getLinkPart(),
+                        body.getEndTimeFrom(),
+                        body.getEndTimeTo(),
+                        body.getDescriptionPart(),
+                        body.getActive()
+                ).stream()
+                .map(linkInfoMapper::toResponse)
                 .toList();
     }
 
@@ -47,8 +53,10 @@ public class LinkInfoServiceImpl implements LinkInfoService {
     @Override
     @LogExecutionTime
     public LinkInfoResponse getByShortLink(String shortLink) {
-        return repository.findByShortLinkAndActiveIsTrueAndEndTimeIsAfter(shortLink).map(linkInfoMapper::toResponse)
-                .orElseThrow(() -> new NotFoundException("Не удалось найти активную сущность по короткой ссылке: " + shortLink));
+        LinkInfo activeShortLink = repository.findActiveShortLink(shortLink, LocalDateTime.now())
+                .orElseThrow(() -> new NotFoundShortLinkException("Не удалось найти активную сущность по короткой ссылке: " + shortLink));
+        repository.incrementOpeningCountByShortLink(shortLink);
+        return linkInfoMapper.toResponse(activeShortLink);
     }
 
     @Override
@@ -60,7 +68,7 @@ public class LinkInfoServiceImpl implements LinkInfoService {
     @Override
     @LogExecutionTime
     public void deleteByLinkId(UUID id) {
-        repository.deleteLink(id);
+        repository.deleteById(id);
     }
 
     @Override
@@ -72,7 +80,7 @@ public class LinkInfoServiceImpl implements LinkInfoService {
             linkToUpdate.setLink(linkInfo.getLink());
         }
         if (linkInfo.getEndTime() != null) {
-            linkToUpdate.setEndTime(LocalDateTime.parse(linkInfo.getEndTime()));
+            linkToUpdate.setEndTime(linkInfo.getEndTime());
         } else {
             linkToUpdate.setEndTime(null);
         }
