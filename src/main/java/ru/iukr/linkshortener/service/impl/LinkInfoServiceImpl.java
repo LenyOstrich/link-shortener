@@ -61,12 +61,6 @@ public class LinkInfoServiceImpl implements LinkInfoService {
 
     @Override
     @LogExecutionTime
-    public List<LinkInfoResponse> findAll() {
-        return repository.findAll().stream().map(linkInfoMapper::toResponse).toList();
-    }
-
-    @Override
-    @LogExecutionTime
     public void deleteByLinkId(UUID id) {
         repository.deleteById(id);
     }

@@ -1,6 +1,7 @@
 package ru.iukr.linkshortener.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -11,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.containers.PostgreSQLContainer;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.dto.FilterLinkInfoRequest;
 import ru.iukr.linkshortener.dto.LinkInfoUpdateRequest;
@@ -52,6 +54,20 @@ class LinkInfoControllerTest {
             .active(true)
             .endTime(tomorrow)
             .build();
+
+    @BeforeAll
+    public static void setUp() {
+        PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
+                .withDatabaseName("test_db")
+                .withUsername("test_user")
+                .withPassword("test_pass");
+        postgresContainer.start();
+
+        // Настройка URL подключения для Spring
+        System.setProperty("spring.datasource.url", postgresContainer.getJdbcUrl());
+        System.setProperty("spring.datasource.username", postgresContainer.getUsername());
+        System.setProperty("spring.datasource.password", postgresContainer.getPassword());
+    }
 
     @Test
     public void testCreateLinkInfo() {

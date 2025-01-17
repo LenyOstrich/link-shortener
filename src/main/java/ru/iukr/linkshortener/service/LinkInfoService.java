@@ -14,8 +14,6 @@ public interface LinkInfoService {
 
     LinkInfoResponse getByShortLink(String shortLink);
 
-    List<LinkInfoResponse> findAll();
-
     void deleteByLinkId(UUID id);
 
     LinkInfoResponse updateLinkInfo(LinkInfoUpdateRequest linkInfo);
