@@ -1,6 +1,7 @@
 package ru.iukr.linkshortener.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -11,6 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.testcontainers.containers.PostgreSQLContainer;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.dto.FilterLinkInfoRequest;
 import ru.iukr.linkshortener.dto.LinkInfoUpdateRequest;
@@ -41,7 +43,7 @@ class LinkInfoControllerTest {
     @Autowired
     private ObjectMapper objectMapper;
 
-    private static final String tomorrow = LocalDateTime.now().plusDays(1).toString();
+    private static final LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
     private static final String DESCRIPTION = "test";
     private static final String LINK = "https://github.com/";
     private static final String ID = "9aac5434-b5ad-47fd-9b32-d1b11fe6f079";
@@ -52,6 +54,20 @@ class LinkInfoControllerTest {
             .active(true)
             .endTime(tomorrow)
             .build();
+
+    @BeforeAll
+    public static void setUp() {
+        PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
+                .withDatabaseName("test_db")
+                .withUsername("test_user")
+                .withPassword("test_pass");
+        postgresContainer.start();
+
+        // Настройка URL подключения для Spring
+        System.setProperty("spring.datasource.url", postgresContainer.getJdbcUrl());
+        System.setProperty("spring.datasource.username", postgresContainer.getUsername());
+        System.setProperty("spring.datasource.password", postgresContainer.getPassword());
+    }
 
     @Test
     public void testCreateLinkInfo() {
@@ -135,10 +151,8 @@ class LinkInfoControllerTest {
                         "Ссылка не может быть пустой", "body.link"),
                 Arguments.of(new CreateLinkInfoRequest("wrong_url_pattern", tomorrow, DESCRIPTION, true),
                         "url не соответствует паттерну", "body.link"),
-                Arguments.of(new CreateLinkInfoRequest(LINK, LocalDateTime.now().minusDays(1).toString(), DESCRIPTION, true),
-                        "Дата окончания действия ссылки не верна", "body.endTime"),
-                Arguments.of(new CreateLinkInfoRequest(LINK, "wrong_date_format", DESCRIPTION, true),
-                        "Дата окончания действия ссылки не верна", "body.endTime"),
+                Arguments.of(new CreateLinkInfoRequest(LINK, LocalDateTime.now().minusDays(1), DESCRIPTION, true),
+                        "Дата окончания действия ссылки не может быть в прошлом", "body.endTime"),
                 Arguments.of(new CreateLinkInfoRequest(LINK, tomorrow, DESCRIPTION, null),
                         "Признак активности не может быть null", "body.active")
         );
@@ -152,10 +166,8 @@ class LinkInfoControllerTest {
                         "Некорректный uuid", "body.id"),
                 Arguments.of(new LinkInfoUpdateRequest(ID,"wrong_url_pattern", tomorrow, DESCRIPTION, true),
                         "url не соответствует паттерну", "body.link"),
-                Arguments.of(new LinkInfoUpdateRequest(ID, LINK, LocalDateTime.now().minusDays(1).toString(), DESCRIPTION, true),
-                        "Дата окончания действия ссылки не верна", "body.endTime"),
-                Arguments.of(new LinkInfoUpdateRequest(ID, LINK, "wrong_date_format", DESCRIPTION, true),
-                        "Дата окончания действия ссылки не верна", "body.endTime")
+                Arguments.of(new LinkInfoUpdateRequest(ID, LINK, LocalDateTime.now().minusDays(1), DESCRIPTION, true),
+                        "Нельзя проставить дату окончания действия ссылки в прошлом", "body.endTime")
         );
     }
 }

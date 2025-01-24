@@ -36,7 +36,7 @@ public class LinkInfoController {
     public CommonListResponse<LinkInfoResponse> filterLinkInfo(@RequestBody CommonRequest<FilterLinkInfoRequest> request) {
         log.info("Поступил запрос на поиск короткой ссылки: {}", request);
         FilterLinkInfoRequest body = request.getBody();
-        List<LinkInfoResponse> foundLinkInfoResponse = linkInfoService.getFilteredLinkInfos(body);
+        List<LinkInfoResponse> foundLinkInfoResponse = linkInfoService.findByFilter(body);
         log.info("Короткие ссылки найдены: {}", foundLinkInfoResponse);
         return CommonListResponse.<LinkInfoResponse>builder()
                 .id(UUID.randomUUID())
