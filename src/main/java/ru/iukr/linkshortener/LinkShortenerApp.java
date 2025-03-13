@@ -10,7 +10,6 @@ import ru.iukr.loggingstarter.LoggingStarterAutoConfiguration;
 @ConfigurationPropertiesScan(basePackageClasses = LinkInfoProperty.class)
 public class LinkShortenerApp {
     public static void main(String[] args) {
-        LoggingStarterAutoConfiguration.println("Test");
         SpringApplication.run(LinkShortenerApp.class, args);
     }
 }

@@ -8,11 +8,14 @@ group = 'ru.iukr'
 version = '1.0-SNAPSHOT'
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven {
         url = uri("https://raw.githubusercontent.com/LenyOstrich/logging-starter/master/maven-repo")
     }
 }
+
+def loggingStarterVersion = '1.1-SNAPSHOT'
 
 dependencies {
     implementation "org.springframework.boot:spring-boot-starter-web"
@@ -30,7 +33,7 @@ dependencies {
 
     implementation 'org.apache.commons:commons-lang3:3.17.0'
 
-    implementation 'ru.iukr:logging-starter:1.0-SNAPSHOT'
+    implementation "ru.iukr:logging-starter:${loggingStarterVersion}"
 
     testImplementation "org.springframework.boot:spring-boot-starter-test"
     testImplementation group: 'org.testcontainers', name: 'postgresql', version: '1.20.4'
