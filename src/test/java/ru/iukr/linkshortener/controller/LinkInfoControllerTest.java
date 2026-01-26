@@ -1,7 +1,6 @@
 package ru.iukr.linkshortener.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -12,10 +11,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.testcontainers.containers.PostgreSQLContainer;
-import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
-import ru.iukr.linkshortener.dto.FilterLinkInfoRequest;
-import ru.iukr.linkshortener.dto.LinkInfoUpdateRequest;
+import org.springframework.transaction.annotation.Transactional;
+import ru.iukr.linkshortener.dto.*;
 import ru.iukr.linkshortener.dto.common.CommonListResponse;
 import ru.iukr.linkshortener.dto.common.CommonRequest;
 import ru.iukr.linkshortener.dto.common.CommonResponse;
@@ -23,6 +20,7 @@ import ru.iukr.linkshortener.model.LinkInfoResponse;
 import ru.iukr.linkshortener.repository.LinkInfoRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -33,6 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @SpringBootTest
 @AutoConfigureMockMvc
+@Transactional
 class LinkInfoControllerTest {
     @Autowired
     LinkInfoController linkInfoController;
@@ -54,20 +53,6 @@ class LinkInfoControllerTest {
             .active(true)
             .endTime(tomorrow)
             .build();
-
-    @BeforeAll
-    public static void setUp() {
-        PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
-                .withDatabaseName("test_db")
-                .withUsername("test_user")
-                .withPassword("test_pass");
-        postgresContainer.start();
-
-        // Настройка URL подключения для Spring
-        System.setProperty("spring.datasource.url", postgresContainer.getJdbcUrl());
-        System.setProperty("spring.datasource.username", postgresContainer.getUsername());
-        System.setProperty("spring.datasource.password", postgresContainer.getPassword());
-    }
 
     @Test
     public void testCreateLinkInfo() {
@@ -98,12 +83,19 @@ class LinkInfoControllerTest {
 
     @Test
     public void testFilterLink() {
-        CommonResponse<LinkInfoResponse> response = linkInfoController.postCreateLinkInfo(new CommonRequest<>(body));
+        createTestData();
         CommonListResponse<LinkInfoResponse> listResponse = linkInfoController.filterLinkInfo(new CommonRequest<>(
                 FilterLinkInfoRequest.builder()
                         .linkPart("test")
+                        .page(PageableRequest.builder()
+                                .number(2)
+                                .size(2)
+                                .sorts(List.of(new SortRequest("openingCount", "DESC")))
+                                .build())
                         .build()
         ));
+        assertTrue(listResponse.getBody().get(0).getOpeningCount() > listResponse.getBody().get(1).getOpeningCount());
+        assertEquals(2, listResponse.getBody().size());
         assertFalse(listResponse.getBody().isEmpty());
     }
 
@@ -128,8 +120,8 @@ class LinkInfoControllerTest {
     @ParameterizedTest
     @MethodSource("patchUpdateShortLinkInvalidRequestSource")
     void when_patchUpdateShortLink_withInvalidRequest_expect_validationError(LinkInfoUpdateRequest createRequest,
-                                                                            String validationErrorMessage,
-                                                                            String field) throws Exception {
+                                                                             String validationErrorMessage,
+                                                                             String field) throws Exception {
         CommonRequest<LinkInfoUpdateRequest> request = new CommonRequest<>();
         request.setBody(createRequest);
 
@@ -164,10 +156,25 @@ class LinkInfoControllerTest {
                         "Некорректный uuid", "body.id"),
                 Arguments.of(new LinkInfoUpdateRequest("invalid_id", LINK, tomorrow, DESCRIPTION, true),
                         "Некорректный uuid", "body.id"),
-                Arguments.of(new LinkInfoUpdateRequest(ID,"wrong_url_pattern", tomorrow, DESCRIPTION, true),
+                Arguments.of(new LinkInfoUpdateRequest(ID, "wrong_url_pattern", tomorrow, DESCRIPTION, true),
                         "url не соответствует паттерну", "body.link"),
                 Arguments.of(new LinkInfoUpdateRequest(ID, LINK, LocalDateTime.now().minusDays(1), DESCRIPTION, true),
                         "Нельзя проставить дату окончания действия ссылки в прошлом", "body.endTime")
         );
+    }
+
+    private void createTestData() {
+        for (int i = 0; i < 5; i++) {
+            final long openingCount = i;
+            CreateLinkInfoRequest body = CreateLinkInfoRequest.builder()
+                    .link("test" + i)
+                    .build();
+            CommonResponse<LinkInfoResponse> response = linkInfoController.postCreateLinkInfo(new CommonRequest<>(body));
+            repository.findById(response.getBody().getId())
+                    .ifPresent(link -> {
+                        link.setOpeningCount(openingCount);
+                        repository.save(link);
+                    });
+        }
     }
 }

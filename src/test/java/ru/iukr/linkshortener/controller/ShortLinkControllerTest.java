@@ -1,13 +1,12 @@
 package ru.iukr.linkshortener.controller;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.springframework.transaction.annotation.Transactional;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.dto.common.CommonRequest;
 import ru.iukr.linkshortener.dto.common.CommonResponse;
@@ -18,25 +17,12 @@ import java.time.LocalDateTime;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
+@Transactional
 class ShortLinkControllerTest {
     @Autowired
     ShortLinkController shortLinkController;
     @Autowired
     LinkInfoController linkInfoController;
-
-    @BeforeAll
-    public static void setUp() {
-        PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
-                .withDatabaseName("test_db")
-                .withUsername("test_user")
-                .withPassword("test_pass");
-        postgresContainer.start();
-
-        // Настройка URL подключения для Spring
-        System.setProperty("spring.datasource.url", postgresContainer.getJdbcUrl());
-        System.setProperty("spring.datasource.username", postgresContainer.getUsername());
-        System.setProperty("spring.datasource.password", postgresContainer.getPassword());
-    }
 
     @Test
     public void testGetByShortLink() {

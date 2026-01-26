@@ -1,10 +1,10 @@
 package ru.iukr.linkshortener.service.impl;
 
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.testcontainers.containers.PostgreSQLContainer;
+import org.springframework.transaction.annotation.Transactional;
+import org.testcontainers.junit.jupiter.Testcontainers;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.dto.FilterLinkInfoRequest;
 import ru.iukr.linkshortener.model.LinkInfo;
@@ -20,6 +20,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @SpringBootTest
+@Transactional
+@Testcontainers
 class LinkInfoServiceImplTest {
 
     @Autowired
@@ -28,26 +30,12 @@ class LinkInfoServiceImplTest {
     private LinkInfoRepository repository;
 
     private final String link = "https://habr.com/";
-    private final LocalDateTime endDate = LocalDateTime.now().plusDays(1);
+    private final LocalDateTime endDate = LocalDateTime.now().plusDays(2);
     private final CreateLinkInfoRequest request = CreateLinkInfoRequest.builder()
             .endTime(endDate)
             .link(link)
             .active(true)
             .build();
-
-    @BeforeAll
-    public static void setUp() {
-        PostgreSQLContainer<?> postgresContainer = new PostgreSQLContainer<>("postgres:latest")
-                .withDatabaseName("test_db")
-                .withUsername("test_user")
-                .withPassword("test_pass");
-        postgresContainer.start();
-
-        // Настройка URL подключения для Spring
-        System.setProperty("spring.datasource.url", postgresContainer.getJdbcUrl());
-        System.setProperty("spring.datasource.username", postgresContainer.getUsername());
-        System.setProperty("spring.datasource.password", postgresContainer.getPassword());
-    }
 
 
     @Test
@@ -62,10 +50,9 @@ class LinkInfoServiceImplTest {
     void getByShortLinkTest() {
         createIfNotExists();
         LinkInfo createdLinkInfo = repository
-                .findAll()
-                .stream()
-                .filter(linkInfo -> linkInfo.getLink().equals(link))
-                .findFirst().get();
+                .findAll().stream()
+                .findFirst()
+                .get();
         assertEquals(linkInfoService.getByShortLink(createdLinkInfo.getShortLink()).getShortLink(), createdLinkInfo.getShortLink());
     }
 
@@ -106,7 +93,12 @@ class LinkInfoServiceImplTest {
     }
 
     private void createIfNotExists() {
-        if (repository.findAll().isEmpty()) {
+        if (repository.findAll().stream()
+                .filter(linkInfo -> linkInfo.getLink().equals(link)
+                        && linkInfo.getActive().equals(true)
+                        && linkInfo.getEndTime().isAfter(endDate))
+                .toList()
+                .isEmpty()) {
             linkInfoService.createLinkInfo(request);
         }
     }

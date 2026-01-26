@@ -26,3 +26,9 @@ logging:
   log-exec-time: true
   web-logging:
     log-body: true
+    masked-headers:
+      - "cookie"
+    masked-fields:
+      - "link"
+    ignored-endpoints:
+      - "/**/short-link/**"
