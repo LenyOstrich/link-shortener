@@ -1,0 +1,4 @@
+
+spring:
+  datasource:
+    url: jdbc:postgresql://postgres-link-shortener:5432/mentoring
