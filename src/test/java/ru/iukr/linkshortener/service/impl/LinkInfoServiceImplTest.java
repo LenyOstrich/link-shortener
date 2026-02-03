@@ -51,6 +51,7 @@ class LinkInfoServiceImplTest {
         createIfNotExists();
         LinkInfo createdLinkInfo = repository
                 .findAll().stream()
+                .filter(linkInfo -> linkInfo.getActive().equals(true) && linkInfo.getEndTime().isAfter(endDate))
                 .findFirst()
                 .get();
         assertEquals(linkInfoService.getByShortLink(createdLinkInfo.getShortLink()).getShortLink(), createdLinkInfo.getShortLink());
