@@ -28,7 +28,9 @@ logging:
     log-body: true
     masked-headers:
       - "cookie"
+      - "Content-Type"
     masked-fields:
       - "link"
-    ignored-endpoints:
+    mask-fields-value: "[censored]"
+    non-logging-endpoints:
       - "/**/short-link/**"
