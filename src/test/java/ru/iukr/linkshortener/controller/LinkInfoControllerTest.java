@@ -1,6 +1,7 @@
 package ru.iukr.linkshortener.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -16,10 +17,13 @@ import ru.iukr.linkshortener.dto.*;
 import ru.iukr.linkshortener.dto.common.CommonListResponse;
 import ru.iukr.linkshortener.dto.common.CommonRequest;
 import ru.iukr.linkshortener.dto.common.CommonResponse;
+import ru.iukr.linkshortener.model.LinkInfo;
 import ru.iukr.linkshortener.model.LinkInfoResponse;
 import ru.iukr.linkshortener.repository.LinkInfoRepository;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -46,6 +50,7 @@ class LinkInfoControllerTest {
     private static final String DESCRIPTION = "test";
     private static final String LINK = "https://github.com/";
     private static final String ID = "9aac5434-b5ad-47fd-9b32-d1b11fe6f079";
+    private static final int SHORT_LINK_LENGTH = 8;
 
 
     private final CreateLinkInfoRequest body = CreateLinkInfoRequest.builder()
@@ -94,7 +99,16 @@ class LinkInfoControllerTest {
                                 .build())
                         .build()
         ));
-        assertTrue(listResponse.getBody().get(0).getOpeningCount() > listResponse.getBody().get(1).getOpeningCount());
+
+        List<Long> actual = listResponse.getBody()
+                .stream()
+                .map(LinkInfoResponse::getOpeningCount)
+                .toList();
+
+        ArrayList<Long> expected = new ArrayList<>(actual);
+        expected.sort(Comparator.reverseOrder());
+
+        assertEquals(expected, actual);
         assertEquals(2, listResponse.getBody().size());
         assertFalse(listResponse.getBody().isEmpty());
     }
@@ -166,11 +180,12 @@ class LinkInfoControllerTest {
     private void createTestData() {
         for (int i = 0; i < 5; i++) {
             final long openingCount = i;
-            CreateLinkInfoRequest body = CreateLinkInfoRequest.builder()
+            LinkInfo linkInfo = LinkInfo.builder()
+                    .shortLink(RandomStringUtils.randomAlphanumeric(SHORT_LINK_LENGTH))
                     .link("test" + i)
                     .build();
-            CommonResponse<LinkInfoResponse> response = linkInfoController.postCreateLinkInfo(new CommonRequest<>(body));
-            repository.findById(response.getBody().getId())
+            repository.save(linkInfo);
+            repository.findById(linkInfo.getId())
                     .ifPresent(link -> {
                         link.setOpeningCount(openingCount);
                         repository.save(link);

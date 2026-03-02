@@ -14,9 +14,9 @@ import lombok.NoArgsConstructor;
 public class SortRequest {
 
     @NotEmpty(message = "Не указано поле для сортировки")
-    String field;
+    private String field;
 
     @Builder.Default
     @Pattern(regexp = "ASC|DESC", message = "Указано некорректное направление сортировки")
-    String direction = "ASC";
+    private String direction = "ASC";
 }
