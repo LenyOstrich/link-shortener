@@ -1,7 +1,9 @@
 package ru.iukr.linkshortener.controller;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.jetbrains.annotations.NotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -12,8 +14,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.transaction.annotation.Transactional;
-import ru.iukr.linkshortener.dto.*;
+import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
+import ru.iukr.linkshortener.dto.FilterLinkInfoRequest;
+import ru.iukr.linkshortener.dto.LinkInfoUpdateRequest;
+import ru.iukr.linkshortener.dto.PageableRequest;
+import ru.iukr.linkshortener.dto.SortRequest;
 import ru.iukr.linkshortener.dto.common.CommonListResponse;
 import ru.iukr.linkshortener.dto.common.CommonRequest;
 import ru.iukr.linkshortener.dto.common.CommonResponse;
@@ -30,6 +37,7 @@ import java.util.stream.Stream;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -48,68 +56,104 @@ class LinkInfoControllerTest {
 
     private static final LocalDateTime tomorrow = LocalDateTime.now().plusDays(1);
     private static final String DESCRIPTION = "test";
-    private static final String LINK = "https://github.com/";
+    private static final String LINK = "https://example.com";
     private static final String ID = "9aac5434-b5ad-47fd-9b32-d1b11fe6f079";
     private static final int SHORT_LINK_LENGTH = 8;
+    public static final String LINK_INFOS_URL = "/api/v1/link-infos";
 
-
-    private final CreateLinkInfoRequest body = CreateLinkInfoRequest.builder()
-            .link("test")
-            .active(true)
-            .endTime(tomorrow)
-            .build();
 
     @Test
-    public void testCreateLinkInfo() {
+    public void testCreateLinkInfo() throws Exception {
+        CreateLinkInfoRequest body = CreateLinkInfoRequest.builder()
+                .link(LINK)
+                .active(true)
+                .endTime(tomorrow)
+                .build();
         CommonRequest<CreateLinkInfoRequest> commonRequest = new CommonRequest<>(body);
-        CommonResponse<LinkInfoResponse> response = linkInfoController.postCreateLinkInfo(commonRequest);
+        MvcResult result = mockMvc.perform(post(LINK_INFOS_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(commonRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseContent = result.getResponse().getContentAsString();
+        CommonResponse<LinkInfoResponse> response = objectMapper.readValue(
+                responseContent,
+                new TypeReference<CommonResponse<LinkInfoResponse>>() {
+                }
+        );
         assertEquals(response.getBody().getLink(), commonRequest.getBody().getLink());
     }
 
     @Test
-    public void testUpdateLinkInfo() {
-        CommonResponse<LinkInfoResponse> response = linkInfoController.postCreateLinkInfo(new CommonRequest<>(body));
+    public void testUpdateLinkInfo() throws Exception {
+        LinkInfo linkInfo = getSavedLinkInfo(1);
+        String oldName = linkInfo.getLink();
         LinkInfoUpdateRequest updateRequest = LinkInfoUpdateRequest.builder()
-                .id(String.valueOf(response.getBody().getId()))
-                .link("test2")
+                .id(String.valueOf(linkInfo.getId()))
+                .link(LINK)
                 .build();
-        CommonResponse<LinkInfoResponse> updateResponse = linkInfoController.postUpdateLinkInfo(new CommonRequest<>(updateRequest));
-        assertEquals("test2", updateResponse.getBody().getLink());
-
+        CommonRequest<LinkInfoUpdateRequest> commonRequest = new CommonRequest<>(updateRequest);
+        MvcResult result = mockMvc.perform(patch(LINK_INFOS_URL)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(commonRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseContent = result.getResponse().getContentAsString();
+        CommonResponse<LinkInfoResponse> response = objectMapper.readValue(
+                responseContent,
+                new TypeReference<CommonResponse<LinkInfoResponse>>() {
+                }
+        );
+        assertEquals(linkInfo.getLink(), response.getBody().getLink());
+        assertNotEquals(oldName, response.getBody().getLink());
     }
 
     @Test
-    public void testDeleteLink() {
-        CommonResponse<LinkInfoResponse> response = linkInfoController.postCreateLinkInfo(new CommonRequest<>(body));
-        int numberOfLinks = repository.findAll().size();
-        linkInfoController.deleteLinkInfo(response.getBody().getId());
-        assertEquals(numberOfLinks - 1, repository.findAll().size());
+    public void testDeleteLink() throws Exception {
+        LinkInfo linkInfo = getSavedLinkInfo(1);
+        int initialCount = repository.findAll().size();
+        linkInfoController.deleteLinkInfo(linkInfo.getId());
+        mockMvc.perform(delete(LINK_INFOS_URL + "/delete/" + linkInfo.getId())
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent())
+                .andReturn();
+        assertEquals(initialCount - 1, repository.findAll().size());
     }
 
     @Test
-    public void testFilterLink() {
+    public void testFilterLink() throws Exception {
         createTestData();
-        CommonListResponse<LinkInfoResponse> listResponse = linkInfoController.filterLinkInfo(new CommonRequest<>(
-                FilterLinkInfoRequest.builder()
-                        .linkPart("test")
-                        .page(PageableRequest.builder()
-                                .number(2)
-                                .size(2)
-                                .sorts(List.of(new SortRequest("openingCount", "DESC")))
-                                .build())
-                        .build()
-        ));
+        FilterLinkInfoRequest request = FilterLinkInfoRequest.builder()
+                .linkPart("example")
+                .page(PageableRequest.builder()
+                        .number(1)
+                        .size(5)
+                        .sorts(List.of(new SortRequest("openingCount", "DESC")))
+                        .build())
+                .build();
+        CommonRequest<FilterLinkInfoRequest> commonRequest = new CommonRequest<>(request);
+        MvcResult result = mockMvc.perform(post(LINK_INFOS_URL + "/filter")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(commonRequest)))
+                .andExpect(status().isOk())
+                .andReturn();
+        String responseContent = result.getResponse().getContentAsString();
+        CommonListResponse<LinkInfoResponse> listResponse = objectMapper.readValue(
+                responseContent,
+                new TypeReference<CommonListResponse<LinkInfoResponse>>() {
+                }
+        );
 
         List<Long> actual = listResponse.getBody()
                 .stream()
                 .map(LinkInfoResponse::getOpeningCount)
                 .toList();
 
-        ArrayList<Long> expected = new ArrayList<>(actual);
+        List<Long> expected = new ArrayList<>(actual);
         expected.sort(Comparator.reverseOrder());
 
         assertEquals(expected, actual);
-        assertEquals(2, listResponse.getBody().size());
+        assertEquals(5, listResponse.getBody().size());
         assertFalse(listResponse.getBody().isEmpty());
     }
 
@@ -121,7 +165,7 @@ class LinkInfoControllerTest {
         CommonRequest<CreateLinkInfoRequest> request = new CommonRequest<>();
         request.setBody(createRequest);
 
-        mockMvc.perform(post("/api/v1/link-infos")
+        mockMvc.perform(post(LINK_INFOS_URL)
                         .header(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .content(objectMapper.writeValueAsString(request)))
                 .andExpect(status().isBadRequest())
@@ -178,18 +222,23 @@ class LinkInfoControllerTest {
     }
 
     private void createTestData() {
-        for (int i = 0; i < 5; i++) {
+        for (int i = 0; i < 10; i++) {
             final long openingCount = i;
-            LinkInfo linkInfo = LinkInfo.builder()
-                    .shortLink(RandomStringUtils.randomAlphanumeric(SHORT_LINK_LENGTH))
-                    .link("test" + i)
-                    .build();
-            repository.save(linkInfo);
+            LinkInfo linkInfo = getSavedLinkInfo(i);
             repository.findById(linkInfo.getId())
                     .ifPresent(link -> {
                         link.setOpeningCount(openingCount);
                         repository.save(link);
                     });
         }
+    }
+
+    private @NotNull LinkInfo getSavedLinkInfo(int i) {
+        LinkInfo linkInfo = LinkInfo.builder()
+                .shortLink(RandomStringUtils.randomAlphanumeric(SHORT_LINK_LENGTH))
+                .link("https://example" + i + ".com")
+                .build();
+        repository.save(linkInfo);
+        return linkInfo;
     }
 }
