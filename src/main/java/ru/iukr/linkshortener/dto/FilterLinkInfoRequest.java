@@ -1,11 +1,13 @@
 package ru.iukr.linkshortener.dto;
 
+import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Data
 @Builder
@@ -18,4 +20,8 @@ public class FilterLinkInfoRequest {
     private LocalDateTime endTimeFrom;
     private String descriptionPart;
     private Boolean active;
+
+    @Valid
+    @Builder.Default
+    private PageableRequest page = new PageableRequest(1, 5, List.of());
 }

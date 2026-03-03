@@ -2,10 +2,13 @@ package ru.iukr.linkshortener.service.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import ru.iukr.linkshortener.annotation.LogExecutionTime;
 import ru.iukr.linkshortener.dto.CreateLinkInfoRequest;
 import ru.iukr.linkshortener.dto.FilterLinkInfoRequest;
+import ru.iukr.linkshortener.dto.PageableRequest;
 import ru.iukr.linkshortener.exception.NotFoundException;
 import ru.iukr.linkshortener.exception.NotFoundShortLinkException;
 import ru.iukr.linkshortener.mapper.LinkInfoMapper;
@@ -15,6 +18,7 @@ import ru.iukr.linkshortener.dto.LinkInfoUpdateRequest;
 import ru.iukr.linkshortener.property.LinkInfoProperty;
 import ru.iukr.linkshortener.repository.LinkInfoRepository;
 import ru.iukr.linkshortener.service.LinkInfoService;
+import ru.iukr.loggingstarter.annotation.LogExecutionTime;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -30,12 +34,16 @@ public class LinkInfoServiceImpl implements LinkInfoService {
     @Override
     @LogExecutionTime
     public List<LinkInfoResponse> findByFilter(FilterLinkInfoRequest body) {
+        PageableRequest page = body.getPage();
+        Pageable pageable = mapPageable(page);
+
         return repository.findByFilter(
                         body.getLinkPart(),
                         body.getEndTimeFrom(),
                         body.getEndTimeTo(),
                         body.getDescriptionPart(),
-                        body.getActive()
+                        body.getActive(),
+                        pageable
                 ).stream()
                 .map(linkInfoMapper::toResponse)
                 .toList();
@@ -86,5 +94,14 @@ public class LinkInfoServiceImpl implements LinkInfoService {
         }
         return linkInfoMapper.toResponse(repository.save(linkToUpdate));
 
+    }
+
+    private Pageable mapPageable(PageableRequest page) {
+        List<Sort.Order> sorts = page.getSorts().stream()
+                .map(sort -> new Sort.Order(
+                        Sort.Direction.valueOf(sort.getDirection()),
+                        sort.getField()
+                )).toList();
+        return PageRequest.of(page.getNumber() - 1, page.getSize(), Sort.by(sorts));
     }
 }
